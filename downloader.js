@@ -3,7 +3,7 @@ const
 
 class Downloader{
     constructor(urls) {
-        this.pages = urls || [
+        this.urls = urls || [
             "http://spys.one/proxies/",
             "http://spys.one/proxies/1/",
             "http://spys.one/proxies/2/",

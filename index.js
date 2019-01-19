@@ -137,7 +137,7 @@ function check_proxy(proxy){
 function check_proxies(){
     const count = client.llen('proxy');
     for(let i = 0; i < count; i++){
-        let proxy = client.lpop('proxy',function(error, str){
+        let proxy = client.lpop('proxy', function(error, str){
             let res = str.split(':');
             check_proxy({ip:res[0],port:res[1]});
         });        
