@@ -1,39 +1,43 @@
 const
+    Promise = require('bluebird'),
     redis = require('redis');
+Promise.promisifyAll(redis);
 
 class RedisQueue{
-    constructor(client, key){
-        this.client = client || redis.createClient(6379,'10.97.114.250');
-        this.key = key;
+    constructor(client, queueName){
+        this.client = client || redis.createClient(6379);
+        this.queueName = queueName;
 
         this.client.on('error', function(err){
-            console.log('Something went wrong ', err)
+            console.log('Something went wrong ', err);
         });
 
-        this.client.on("connect", function () {
-            console.log('Redis connected')
+        this.client.on('connect', function () {
+            console.log('Redis connected');
         });
+
+        this.lastValue = null;
     }
 
-    enqueu(value){
-        this.client.sadd(this.key, value);
+    get len(){
+        return this.client.scardAsync(this.queueName);
     }
 
-    dequeue(){
-        let res;
-        return this.client.spop(this.key, (err,val)=>res = err || val);
-        return res;
+    push(value){
+        if(typeof value == [] && value.length > 0){
+            this.client.saddAsync(this.queueName, ...value);
+        }
+        else{
+            this.client.saddAsync(this.queueName, value);
+        }
     }
 
-    showQueue(){
-        return this.client.sinter(this.client,(err,res)=>{console.log(err, res)});
+    get pop(){
+        return this.client.spopAsync(this.queueName);
     }
 
-    count(){
-        this.client.scard(this.key, function (err,val) {
-            this._count = err ? null : val;
-        });
-        return this._count;
+    get showQueue(){
+        return this.client.smembersAsync(this.queueName);
     }
 
     close(){

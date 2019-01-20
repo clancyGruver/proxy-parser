@@ -1,12 +1,12 @@
 const 
-    rp = require("request-promise"),
-    cheerio = require("cheerio"),
+    rp = require('request-promise'),
+    cheerio = require('cheerio'),
     pages = [
-                "http://spys.one/proxies/",
-                "http://spys.one/proxies/1/",
-                "http://spys.one/proxies/2/",
-                "http://spys.one/proxies/3/",
-            ],
+        'http://spys.one/proxies/',
+        'http://spys.one/proxies/1/',
+        'http://spys.one/proxies/2/',
+        'http://spys.one/proxies/3/',
+    ],
     options = {
         uri: 'http://spys.one/proxies/',
         headers: {
@@ -16,11 +16,11 @@ const
             return cheerio.load(body);
         }
     },
-    redis = require("redis"),
+    redis = require('redis'),
     client = redis.createClient();
 
-client.on("error", function (err) {
-    console.log("Error " + err);
+client.on('error', function (err) {
+    console.log('Error ' + err);
 });
 
 function get_proxies(){
@@ -29,10 +29,10 @@ function get_proxies(){
         rp(options)
             .then(($)=>{
                 const
-                    scripts = $("body>script"),
+                    scripts = $('body>script'),
                     script_codes = {},
-                    proxy_row = $("table>tbody>tr>td>table>tbody>tr"),
-                    script = $(scripts["1"]).html();
+                    proxy_row = $('table>tbody>tr>td>table>tbody>tr'),
+                    script = $(scripts['1']).html();
     
                 get_script_codes(script).map((v)=>{
                     script_codes[v.name] = v.value;
@@ -50,7 +50,7 @@ function get_proxies(){
                 });
             })
             .catch(function (err) {
-                console.log("Произошла ошибка: " + err);
+                console.log('Произошла ошибка: ' + err);
             });
     });
 }
@@ -58,11 +58,11 @@ function get_proxies(){
     
 function get_script_codes(script){
     const scripts = script.split(';').slice(0,-1),
-          codes = [],
-          re = /(\d\^.+)/i;
-    scripts.map((v,i)=>{
+        codes = [],
+        re = /(\d\^.+)/i;
+    scripts.map((v)=>{
         const code = v.split('='),
-              re_res = code[1].match(re);
+            re_res = code[1].match(re);
         if(re_res !== null)
             codes.push({name:code[0], value:code[1].slice(0,1)});
     });
@@ -91,8 +91,8 @@ function clean_proxy(decriptor, str){
     str = $(str);
 
     const
-        ip = str.text();
-        script_cripted = str.children("script").html().split('+').slice(1);
+        ip = str.text(),
+        script_cripted = str.children('script').html().split('+').slice(1);
     
     let 
         port = '';
@@ -121,7 +121,7 @@ function check_proxy(proxy){
         client.rpush('proxy', full_proxy);
     }
 
-    function callback(error, response, body) {
+    function callback(error, response) {
         if (!error && response.statusCode == 200) {
             console.log(full_proxy, 'good');
             insert_to_redis(full_proxy);
@@ -137,7 +137,7 @@ function check_proxy(proxy){
 function check_proxies(){
     const count = client.llen('proxy');
     for(let i = 0; i < count; i++){
-        let proxy = client.lpop('proxy', function(error, str){
+        client.lpop('proxy', function(error, str){
             let res = str.split(':');
             check_proxy({ip:res[0],port:res[1]});
         });        
@@ -145,17 +145,17 @@ function check_proxies(){
 }
 
 function proxy_collect() {
-    console.log("start collect proxies");
+    console.log('start collect proxies');
     const time = 2*60*60*1000; // 2 hours
     setTimeout(()=>{
         if(client.llen('proxy') > 1000)
             get_proxies();
         proxy_collect();
     }, time);
- }
+}
 
- function check_proxy_collection() {
-    console.log("start check proxies");
+function check_proxy_collection() {
+    console.log('start check proxies');
     const time = 30*60*1000; // half of hour
     check_proxies();
     setTimeout(check_proxy_collection, time);

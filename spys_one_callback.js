@@ -1,6 +1,6 @@
 const
-    rp = require("request-promise"),
-    cheerio = require("cheerio");
+    cheerio = require('cheerio'),
+    proxyCheck = require('./proxyCheck');
 
 class SpysOne{
     constructor(htmlString){
@@ -8,11 +8,11 @@ class SpysOne{
             .then(resp=>{
                 const
                     $ = cheerio.load(resp),
-                    scripts = $("body>script"),
+                    scripts = $('body>script'),
                     script_codes = {},
-                    proxy_row = $("table>tbody>tr>td>table>tbody>tr"),
-                    script = $(scripts["1"]).html();
-                    console.log(script);
+                    proxy_row = $('table>tbody>tr>td>table>tbody>tr'),
+                    script = $(scripts['1']).html();
+                console.log(script);
     
                 get_script_codes(script).map((v)=>{
                     script_codes[v.name] = v.value;
@@ -24,17 +24,21 @@ class SpysOne{
                     if(proxy === false)
                         return;
                     const 
-                        clear_proxy = clean_proxy(script_codes, proxy);
-                    
-                    check_proxy(clear_proxy);
+                        clear_proxy = clean_proxy(script_codes, proxy),
+                        cp = new proxyCheck(clear_proxy);
+                    cp.check();
                 });
             })
-            .catch(err=>console.log("Error occured " + err ));
+            .catch(err=>console.log('Error occured ' + err ));
+    }
+
+    check_proxy(){
+        
     }
     
     getCipherScript(){
-        scripts =this.$("body>script"),
-        script = this.$(scripts["1"]).html();
+        scripts =this.$('body>script'),
+        script = this.$(scripts['1']).html();
         this.cipher = script;
     }
     
@@ -71,7 +75,7 @@ class SpysOne{
 
         const
             ip = str.text();
-            script_cripted = str.children("script").html().split('+').slice(1);
+            script_cripted = str.children('script').html().split('+').slice(1);
         
         let 
             port = '';
@@ -83,35 +87,6 @@ class SpysOne{
         return {ip:ip, port:port};
     }
 
-    check_proxy(proxy){    
-        const 
-            full_proxy = 'http://' + proxy.ip + ':' + proxy.port,
-            options = {
-                url: 'http://' + 'ya.ru/',
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
-                },
-                proxy:full_proxy
-            },
-            r = require('request');
-        
-        function insert_to_redis(full_proxy){
-            console.log('Inserted to redis');
-            client.rpush('proxy', full_proxy);
-        }
-
-        function callback(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                console.log(full_proxy, 'good');
-                insert_to_redis(full_proxy);
-            }
-            else {
-                console.log(full_proxy);
-                console.log('Check_proxy error: ', error);
-            }
-        }
-        r(options, callback);
-    }
 }
 
 module.exports = SpysOne;
