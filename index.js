@@ -6,12 +6,6 @@ const
     SOC = require('./spys_one_callback'),
     pc = require('./proxyCheck');
 
-function check_proxies(){
-    proxyRedisQueue.showQueue.map((proxy)=>{
-        new pc(proxy);
-    });
-}
-
 function proxy_collect() {
     console.log('start collecting proxies');
     const time = 2*60*60*1000; // 2 hours
@@ -26,7 +20,9 @@ function proxy_collect() {
 function check_proxy_collection() {
     console.log('start check proxies');
     const time = 30*60*1000; // half of hour
-    check_proxies();
+    proxyRedisQueue.showQueue.map((proxy)=>{
+        new pc(proxy);
+    });
     setTimeout(check_proxy_collection, time);
 } 
 proxy_collect();   
