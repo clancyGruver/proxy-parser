@@ -4,8 +4,8 @@ const
 Promise.promisifyAll(redis);
 
 class RedisQueue{
-    constructor(client, queueName){
-        this.client = client || redis.createClient(6379);
+    constructor(clentOptions, queueName){
+        this.client = clentOptions ? redis.createClient(clentOptions) : redis.createClient();
         this.queueName = queueName;
 
         this.client.on('error', function(err){

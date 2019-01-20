@@ -1,7 +1,9 @@
 const
     cheerio = require('cheerio'),
     proxyCheck = require('./proxyCheck');
-
+/**
+ * htmlString - promise of html
+ */
 class SpysOne{
     constructor(htmlString){
         this.script_codes = {};
