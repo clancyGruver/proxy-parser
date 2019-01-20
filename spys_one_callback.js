@@ -4,55 +4,57 @@ const
 
 class SpysOne{
     constructor(htmlString){
+        this.script_codes = {};
+        this.proxies = [];
         htmlString
             .then(resp=>{
                 const
                     $ = cheerio.load(resp),
-                    scripts = $('body>script'),
-                    script_codes = {},
-                    proxy_row = $('table>tbody>tr>td>table>tbody>tr'),
+                    scripts = $('body>script'),                    
+                    proxy_rows = $('table>tbody>tr>td>table>tbody>tr'),
                     script = $(scripts['1']).html();
-                console.log(script);
     
-                get_script_codes(script).map((v)=>{
-                    script_codes[v.name] = v.value;
-                });
-                
-                proxy_row.map(function(){
-                    const 
-                        proxy = get_proxy_td($(this).find('td'));
-                    if(proxy === false)
-                        return;
-                    const 
-                        clear_proxy = clean_proxy(script_codes, proxy),
-                        cp = new proxyCheck(clear_proxy);
-                    cp.check();
-                });
+                this.get_script_codes(script);
+                this.get_proxies(proxy_rows);
+                this.check_proxies();
             })
             .catch(err=>console.log('Error occured ' + err ));
     }
 
-    check_proxy(){
-        
+    check_proxies(){
+        this.proxies.map(()=>{
+            const 
+                pc = new proxyCheck(this);
+            pc.check();
+        });
     }
     
-    getCipherScript(){
-        scripts =this.$('body>script'),
-        script = this.$(scripts['1']).html();
-        this.cipher = script;
-    }
-    
-    get_script_codes(script){
-        const scripts = script.split(';').slice(0,-1),
+    get_script_codes($){        
+        const 
+            bodyScripts =$('body>script'),
+            cipherScript = $(bodyScripts['1']).html(),
+            scripts = cipherScript.split(';').slice(0,-1),
             codes = [],
             re = /(\d\^.+)/i;
-        scripts.map((v,i)=>{
+        scripts.map((v)=>{
             const code = v.split('='),
                 re_res = code[1].match(re);
             if(re_res !== null)
                 codes.push({name:code[0], value:code[1].slice(0,1)});
         });
-        return codes;
+        codes.map((v)=>this.script_codes[v.name] = v.value);        
+    }
+
+    get_proxies(trs){
+        let prox = this.proxies;
+        trs.map(()=>{
+            const 
+                $ = cheerio.load(this),
+                proxy = this.get_proxy_td($.find('td'));
+            if(proxy === false)
+                return;
+            prox.push(this.clean_proxy(proxy));
+        });
     }
 
     get_proxy_td(val){
@@ -68,20 +70,20 @@ class SpysOne{
         return proxy;
     }
 
-    clean_proxy(decriptor, str){
+    clean_proxy(str){
         const 
             $ = cheerio.load(str);
         str = $(str);
 
         const
-            ip = str.text();
+            ip = str.text(),
             script_cripted = str.children('script').html().split('+').slice(1);
         
         let 
             port = '';
 
         script_cripted.map((v)=>{
-            port += decriptor[v.slice(1,-1).split('^')[0]];
+            port += this.script_codes[v.slice(1,-1).split('^')[0]];
         });
 
         return {ip:ip, port:port};
