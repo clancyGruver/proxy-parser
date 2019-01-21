@@ -8,12 +8,14 @@ const
 
 function proxy_collect() {
     console.log('start collecting proxies');
-    const time = 2*60*60*1000; // 2 hours
-    if(proxyRedisQueue.len > 1000){
-        Downloader.urls.map((url)=>{
-            new SOC(Downloader.download_page(url));
-        });
-    }
+    const time = 2*60*601000; // 2 hours
+    proxyRedisQueue.len.then((val)=>{
+        if (val < 1000){
+            Downloader.urls.map((url)=>{
+                new SOC(Downloader.download_page(url));
+            });
+        }
+    });
     setTimeout(proxy_collect, time);
 }
 

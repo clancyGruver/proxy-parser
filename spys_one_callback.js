@@ -24,18 +24,19 @@ class SpysOne{
     }
 
     check_proxies(){
-        this.proxies.map(()=>{
+        this.proxies.map((proxy)=>{
             const 
-                pc = new proxyCheck(this);
+                pc = new proxyCheck(proxy);
             pc.check();
         });
     }
     
-    get_script_codes($){        
+    get_script_codes(str){        
         const 
-            bodyScripts =$('body>script'),
-            cipherScript = $(bodyScripts['1']).html(),
-            scripts = cipherScript.split(';').slice(0,-1),
+            /*$ = cheerio.load(str),
+            bodyScripts = $('body>script'),
+            cipherScript = $(bodyScripts['1']).html(),*/
+            scripts = str.split(';').slice(0,-1),
             codes = [],
             re = /(\d\^.+)/i;
         scripts.map((v)=>{
@@ -49,10 +50,10 @@ class SpysOne{
 
     get_proxies(trs){
         let prox = this.proxies;
-        trs.map(()=>{
+        trs.map((val)=>{
             const 
-                $ = cheerio.load(this),
-                proxy = this.get_proxy_td($.find('td'));
+                $ = cheerio.load(trs[val]);
+            const    proxy = this.get_proxy_td($(trs[val]).find('td'));
             if(proxy === false)
                 return;
             prox.push(this.clean_proxy(proxy));

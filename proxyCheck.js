@@ -1,5 +1,5 @@
 const 
-    rq = require('request-promise'),
+    rq = require('request'),
     rc = require('./RedisQueue');
 /**
  * Class for checkin proxy on ya.ru
@@ -9,7 +9,7 @@ class CheckProxy{
      * proxy - {ip: string, port: string} | sting 'ip:port'
      */
     constructor(proxy){
-        this.proxy = typeof proxy === {} ? 'http://' + proxy.ip + ':' + proxy.port : proxy;
+        this.proxy = typeof proxy === typeof {} ? 'http://' + proxy.ip + ':' + proxy.port : proxy;
         this.options = {
             url: 'http://ya.ru/', //url for checking proxy
             headers: {
@@ -20,22 +20,18 @@ class CheckProxy{
         };
     }
 
-    insert_to_redis(){
-        const redisClient = new rc(null, 'proxy'); // create redis client for inserting to redis in db: 'db0', key: 'proxy'
-        redisClient.push(this.proxy); //add proxy to redis
-        redisClient.close(); //close connection to redis
-    }
-
     check(){
-        rq(this.options)
-            .then(this.callbackSuccess)
-            .catch();
-    }
+        rq(this.options, (error, response)=>{
+            if (!error && response.statusCode == 200) {
+                const redisClient = new rc(null, 'proxy'); // create redis client for inserting to redis in db: 'db0', key: 'proxy'
+                redisClient.push(this.proxy); //add proxy to redis
+                redisClient.close(); //close connection to redis
+                console.log('Good proxy: ' + this.proxy);
+            } else {
+                console.error('Error occured ' + error);
+            }
 
-    callbackSuccess(response) {
-        if (response.statusCode == 200) {
-            this.insert_to_redis(this.proxy);
-        }
+        });
     }
 }
 
