@@ -8,7 +8,8 @@ class CheckProxy{
     /**
      * proxy - {ip: string, port: string} | sting 'ip:port'
      */
-    constructor(proxy){
+    constructor(proxy, score){
+        this.score = score || 1;
         this.proxy = typeof proxy === typeof {} ? 'http://' + proxy.ip + ':' + proxy.port : proxy;
         this.options = {
             url: 'http://ya.ru/', //url for checking proxy
@@ -24,7 +25,7 @@ class CheckProxy{
         rq(this.options, (error, response)=>{
             if (!error && response.statusCode == 200) {
                 const redisClient = new rc(null, 'proxy'); // create redis client for inserting to redis in db: 'db0', key: 'proxy'
-                redisClient.push(this.proxy); //add proxy to redis
+                redisClient.push([this.score, this.proxy]); //add proxy to redis
                 redisClient.close(); //close connection to redis
                 console.log('Good proxy: ' + this.proxy);
             } else {

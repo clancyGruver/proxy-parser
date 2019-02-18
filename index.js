@@ -8,7 +8,7 @@ const
 
 function proxy_collect() {
     console.log('start collecting proxies');
-    const time = 2*60*601000; // 2 hours
+    const time = /*2*60*/1*60*1000; // 2 hours
     proxyRedisQueue.len.then((val)=>{
         if (val < 1000){
             Downloader.urls.map((url)=>{
@@ -21,7 +21,7 @@ function proxy_collect() {
 
 function check_proxy_collection() {
     console.log('start check proxies');
-    const time = 30*60*1000; // half of hour
+    const time = /*30*/5*60*1000; // half of hour
     proxyRedisQueue.showQueue.map((proxy)=>{
         new pc(proxy);
     });
