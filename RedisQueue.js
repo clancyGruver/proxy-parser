@@ -10,7 +10,7 @@ Promise.promisifyAll(redis);
 class RedisQueue{
     constructor(clentOptions, queueName){
         this.client = clentOptions ? redis.createClient(clentOptions) : redis.createClient();
-        this.queueName = 'queue:'  + queueName;
+        this.queueName = queueName;
 
         this.client.on('error', function(err){
             console.log('Something went wrong ', err);
